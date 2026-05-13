@@ -22,9 +22,16 @@
 <!-- Folders Grid -->
 <div *ngIf="!selectedFolder()" class="folder-grid">
   <div *ngFor="let folder of folders$ | async" class="folder-card" (click)="selectFolder(folder)">
-    <i class="material-icons-round delete-btn" (click)="deleteFolder($event, folder)">delete</i>
+    @if (folder.uid === auth.currentUser?.uid) {
+      <i class="material-icons-round delete-btn" (click)="deleteFolder($event, folder)">delete</i>
+    }
     <i class="material-icons-round folder-icon">folder</i>
-    <div class="folder-name">{{folder.name}}</div>
+    <div class="folder-name" style="display:flex; align-items:center; gap:0.35rem;">
+      {{folder.name}}
+      @if (folder.isPublic) {
+        <i class="material-icons-round" style="font-size:0.85rem; color:var(--text-secondary);" title="Shared with all users">public</i>
+      }
+    </div>
     <div style="font-size: 0.75rem; color: var(--text-secondary);">{{folder.count || 0}} items</div>
   </div>
 
@@ -90,6 +97,14 @@
       <label>Folder Name</label>
       <input class="form-input" [(ngModel)]="newFolderName" placeholder="e.g. My Strategies" (keyup.enter)="saveNewFolder()">
     </div>
+
+    @if (userService.isAdmin()) {
+      <div style="display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:color-mix(in srgb, var(--accent-color) 8%, transparent); border:1px solid color-mix(in srgb, var(--accent-color) 25%, transparent); border-radius:8px;">
+        <i class="material-icons-round" style="color:var(--accent-color); font-size:1.1rem;">public</i>
+        <span style="flex:1; font-size:0.875rem;">Share with all users</span>
+        <div class="toggle" [class.active]="newFolderIsPublic" (click)="newFolderIsPublic = !newFolderIsPublic"></div>
+      </div>
+    }
 
     <div style="display: flex; gap: 1rem; margin-top: 2rem;">
       <button class="btn-outline" style="flex: 1; background: var(--accent-color); border-color: var(--accent-color); color: #000; padding: 0.75rem; border-radius: 8px; font-weight: 700; cursor: pointer;" (click)="saveNewFolder()">Create Folder</button>

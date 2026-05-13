@@ -1,11 +1,13 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, query, CollectionReference, DocumentData } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, query, where, CollectionReference, DocumentData } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Auth } from '@angular/fire/auth';
+import { Observable, combineLatest, map } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-scripts',
@@ -205,14 +207,16 @@ import { ConfirmService } from '../../core/services/confirm.service';
 })
 export class ScriptsComponent implements OnInit {
   private db = getFirestore();
+  auth = inject(Auth);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
+  userService = inject(UserService);
 
   showModal = false;
   isUpload = false;
   isSavingNew = false;
   isSaving = false;
-  scriptForm = { name: '', type: 'Indicator' };
+  scriptForm = { name: '', type: 'Indicator', isPublic: false };
   pendingCode = '';
 
   scripts$: Observable<any[]> | undefined;
@@ -234,14 +238,25 @@ plot(ma, title="MA", color=color.new(color.yellow, 0), linewidth=2)
 `;
 
   ngOnInit() {
-    const scriptsCol = collection(this.db, 'scripts') as CollectionReference<DocumentData>;
-    this.scripts$ = collectionData(query(scriptsCol), { idField: 'id' });
+    const uid = this.auth.currentUser!.uid;
+    const col = collection(this.db, 'scripts') as CollectionReference<DocumentData>;
+    const own$    = collectionData(query(col, where('uid', '==', uid)), { idField: 'id' });
+    const public$ = collectionData(query(col, where('isPublic', '==', true)), { idField: 'id' });
+    this.scripts$ = combineLatest([own$, public$]).pipe(
+      map(([own, pub]) => {
+        const merged = [...own];
+        for (const p of pub) {
+          if (!merged.find((s: any) => s.id === p.id)) merged.push(p);
+        }
+        return merged;
+      })
+    );
   }
 
   openNewModal() {
     this.isUpload = false;
     this.pendingCode = this.PINE_TEMPLATE;
-    this.scriptForm = { name: '', type: 'Indicator' };
+    this.scriptForm = { name: '', type: 'Indicator', isPublic: false };
     this.showModal = true;
   }
 
@@ -255,8 +270,10 @@ plot(ma, title="MA", color=color.new(color.yellow, 0), linewidth=2)
     this.isSavingNew = true;
     try {
       const docRef = await addDoc(collection(this.db, 'scripts'), {
+        uid: this.auth.currentUser!.uid,
         name,
         type: type || 'Indicator',
+        isPublic: this.userService.isAdmin() ? this.scriptForm.isPublic : false,
         updated: new Date().toLocaleDateString(),
         code: this.pendingCode
       });
@@ -314,7 +331,7 @@ plot(ma, title="MA", color=color.new(color.yellow, 0), linewidth=2)
     reader.onload = (e) => {
       this.isUpload = true;
       this.pendingCode = (e.target?.result as string) ?? '';
-      this.scriptForm = { name: file.name.replace(/\.(pine|txt)$/, ''), type: 'Indicator' };
+      this.scriptForm = { name: file.name.replace(/\.(pine|txt)$/, ''), type: 'Indicator', isPublic: false };
       this.showModal = true;
     };
     reader.readAsText(file);

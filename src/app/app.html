@@ -1,11 +1,25 @@
 <div class="app-container">
-  <app-sidebar *ngIf="!isAuthPage()"></app-sidebar>
-  
+
+  <div
+    class="sidebar-backdrop"
+    [class.visible]="sidebar.isMobileOpen()"
+    (click)="sidebar.closeMobile()"
+  ></div>
+
+  @if (!isAuthPage()) {
+    <app-sidebar
+      [class.collapsed]="sidebar.isCollapsed()"
+      [class.mobile-open]="sidebar.isMobileOpen()"
+    ></app-sidebar>
+  }
+
   <div class="main-content" [class.full-width]="isAuthPage()">
-    <app-header *ngIf="!isAuthPage()"></app-header>
-    
+    @if (!isAuthPage()) {
+      <app-header></app-header>
+    }
     <main class="content-area">
       <router-outlet></router-outlet>
     </main>
   </div>
+
 </div>

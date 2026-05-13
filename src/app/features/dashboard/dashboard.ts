@@ -2,8 +2,9 @@ import { Component, signal, inject, DestroyRef, OnInit, computed } from '@angula
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { getFirestore, collection, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-dashboard',
@@ -117,6 +118,7 @@ import { collectionData } from '@angular/fire/firestore';
 })
 export class DashboardComponent implements OnInit {
   private db = getFirestore();
+  private auth = inject(Auth);
   private destroyRef = inject(DestroyRef);
 
   totalJournalEntries = signal(0);
@@ -168,7 +170,9 @@ export class DashboardComponent implements OnInit {
   }
 
   ngOnInit() {
-    const journalQ = query(collection(this.db, 'journal'), orderBy('date', 'desc'));
+    const uid = this.auth.currentUser!.uid;
+
+    const journalQ = query(collection(this.db, 'journal'), where('uid', '==', uid), orderBy('date', 'desc'));
     collectionData(journalQ, { idField: 'id' })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((entries: any[]) => {
@@ -181,11 +185,11 @@ export class DashboardComponent implements OnInit {
         this.recentTrades.set(entries.slice(0, 5));
       });
 
-    collectionData(collection(this.db, 'scripts'), { idField: 'id' })
+    collectionData(query(collection(this.db, 'scripts'), where('uid', '==', uid)), { idField: 'id' })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((scripts: any[]) => this.totalScripts.set(scripts.length));
 
-    collectionData(collection(this.db, 'folders'), { idField: 'id' })
+    collectionData(query(collection(this.db, 'folders'), where('uid', '==', uid)), { idField: 'id' })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((folders: any[]) => this.totalFolders.set(folders.length));
   }

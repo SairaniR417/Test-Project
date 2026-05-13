@@ -23,11 +23,16 @@
         <div class="script-item"
              [class.active]="selectedScript()?.id === script.id"
              (click)="selectScript(script)">
-          <i class="material-icons-round del-btn" (click)="$event.stopPropagation(); deleteScript(script)">delete</i>
-          <div style="font-weight: 600; color: var(--accent-color); font-size: 0.9rem; padding-right: 1.25rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-            {{script.name}}
+          @if (script.uid === auth.currentUser?.uid) {
+            <i class="material-icons-round del-btn" (click)="$event.stopPropagation(); deleteScript(script)">delete</i>
+          }
+          <div style="display:flex; align-items:center; gap:0.4rem; padding-right:1.25rem; margin-bottom:0.25rem;">
+            <span style="font-weight:600; color:var(--accent-color); font-size:0.9rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1;">{{script.name}}</span>
+            @if (script.isPublic) {
+              <i class="material-icons-round" style="font-size:0.85rem; color:var(--text-secondary);" title="Shared with all users">public</i>
+            }
           </div>
-          <div style="font-size: 0.75rem; color: var(--text-secondary);">{{script.type}} · {{script.updated}}</div>
+          <div style="font-size:0.75rem; color:var(--text-secondary);">{{script.type}} · {{script.updated}}</div>
         </div>
       }
       @if (scripts.length === 0) {
@@ -111,6 +116,14 @@
       <div class="form-group" style="margin-top: 1.25rem; margin-bottom: 0;">
         <label>Pine Script Code</label>
         <textarea class="form-input modal-code" [(ngModel)]="pendingCode" spellcheck="false" (keydown.tab)="onTabKey($event)"></textarea>
+      </div>
+    }
+
+    @if (userService.isAdmin()) {
+      <div style="display:flex; align-items:center; gap:0.75rem; margin-top:1.25rem; padding:0.75rem 1rem; background:color-mix(in srgb, var(--accent-color) 8%, transparent); border:1px solid color-mix(in srgb, var(--accent-color) 25%, transparent); border-radius:8px;">
+        <i class="material-icons-round" style="color:var(--accent-color); font-size:1.1rem;">public</i>
+        <span style="flex:1; font-size:0.875rem;">Share with all users</span>
+        <div class="toggle" [class.active]="scriptForm.isPublic" (click)="scriptForm.isPublic = !scriptForm.isPublic"></div>
       </div>
     }
 

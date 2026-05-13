@@ -3,8 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { getFirestore, collection, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
+import { Auth, authState } from '@angular/fire/auth';
+import { switchMap, filter } from 'rxjs';
+import { SidebarService } from '../../../core/services/sidebar.service';
 
 @Component({
   selector: 'app-header',
@@ -153,13 +156,33 @@ import { collectionData } from '@angular/fire/firestore';
     }
 
     .upload-btn:hover { opacity: 0.85; }
+
+    .hamburger {
+      display: none;
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 0.3rem;
+      border-radius: 6px;
+      align-items: center;
+    }
+
+    .hamburger:hover { color: var(--text-primary); }
+
+    @media (max-width: 768px) {
+      .hamburger { display: flex; }
+      .search-wrapper { flex: 1; max-width: 100%; }
+    }
   `]
 })
 export class HeaderComponent implements OnInit {
   private db = getFirestore();
+  private auth = inject(Auth);
   private router = inject(Router);
   private destroyRef = inject(DestroyRef);
   private el = inject(ElementRef);
+  sidebar = inject(SidebarService);
 
   searchQuery = signal('');
   showDropdown = signal(false);
@@ -167,12 +190,16 @@ export class HeaderComponent implements OnInit {
   filteredEntries = signal<any[]>([]);
 
   ngOnInit() {
-    const q = query(collection(this.db, 'journal'), orderBy('date', 'desc'));
-    collectionData(q, { idField: 'id' })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((entries: any[]) => {
-        this.allEntries = entries;
-      });
+    authState(this.auth).pipe(
+      filter(user => !!user),
+      switchMap(user => {
+        const q = query(collection(this.db, 'journal'), where('uid', '==', user!.uid), orderBy('date', 'desc'));
+        return collectionData(q, { idField: 'id' });
+      }),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe((entries: any[]) => {
+      this.allEntries = entries;
+    });
   }
 
   onSearch(value: string) {

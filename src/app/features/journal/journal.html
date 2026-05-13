@@ -47,7 +47,9 @@
          class="entry-card" 
          [class.active]="selectedEntry()?.id === entry.id"
          (click)="selectEntry(entry)">
-      <i class="material-icons-round delete-entry-btn" (click)="deleteEntry($event, entry)">delete</i>
+      @if (entry.uid === auth.currentUser?.uid) {
+        <i class="material-icons-round delete-entry-btn" (click)="deleteEntry($event, entry)">delete</i>
+      }
       <div style="font-size: 0.75rem; color: var(--text-secondary); margin-bottom: 0.5rem;">{{entry.displayDate}}</div>
       <div style="font-weight: 600; margin-bottom: 0.5rem;">{{entry.title}}</div>
       <div class="tag" [class.profit]="entry.status === 'profit'" [class.loss]="entry.status === 'loss'">

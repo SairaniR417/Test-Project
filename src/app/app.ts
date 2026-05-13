@@ -5,6 +5,7 @@ import { HeaderComponent } from './shared/components/header/header';
 import { CommonModule } from '@angular/common';
 import { filter } from 'rxjs';
 import { ThemeService } from './core/services/theme.service';
+import { SidebarService } from './core/services/sidebar.service';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +18,7 @@ export class App {
   isAuthPage = signal(false);
   private router = inject(Router);
   private _theme = inject(ThemeService);
+  sidebar = inject(SidebarService);
 
   constructor() {
     this.router.events.pipe(

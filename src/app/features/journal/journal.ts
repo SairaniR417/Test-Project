@@ -1,8 +1,9 @@
 import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
-import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, updateDoc, doc, deleteDoc, query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
@@ -176,6 +177,7 @@ interface JournalStats {
 })
 export class JournalComponent implements OnInit {
   private db = getFirestore();
+  auth = inject(Auth);
   private destroyRef = inject(DestroyRef);
   private route = inject(ActivatedRoute);
   private toast = inject(ToastService);
@@ -209,16 +211,17 @@ export class JournalComponent implements OnInit {
   }
 
   ngOnInit() {
-    const journalCol = collection(this.db, 'journal');
-    const q = query(journalCol, orderBy('date', 'desc'));
-    const entries$ = collectionData(q, { idField: 'id' });
-    this.entries$ = entries$;
+    const uid = this.auth.currentUser!.uid;
+    const col = collection(this.db, 'journal');
+    const own$ = collectionData(query(col, where('uid', '==', uid), orderBy('date', 'desc')), { idField: 'id' });
+
+    this.entries$ = own$;
 
     const targetId = this.route.snapshot.queryParamMap.get('id');
 
-    entries$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(entries => {
+    own$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(entries => {
       if (entries.length > 0 && !this.selectedEntry()) {
-        const target = targetId ? entries.find(e => e.id === targetId) : null;
+        const target = targetId ? entries.find((e: any) => e.id === targetId) : null;
         this.selectedEntry.set(target ?? entries[0]);
       }
       this.computeStats(entries);
@@ -238,7 +241,8 @@ export class JournalComponent implements OnInit {
     if (!this.newEntryForm.title) return;
 
     const newEntry: any = {
-      date: new Date().toISOString(), // Use ISO for sorting
+      uid: this.auth.currentUser!.uid,
+      date: new Date().toISOString(),
       displayDate: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
       title: this.newEntryForm.title,
       pnl: this.newEntryForm.pnl || '$0.00',

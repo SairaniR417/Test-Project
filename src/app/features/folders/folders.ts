@@ -1,12 +1,14 @@
 import { Component, signal, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
-import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, increment, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, increment, query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
-import { Observable } from 'rxjs';
+import { Auth } from '@angular/fire/auth';
+import { Observable, combineLatest, map } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
+import { UserService } from '../../core/services/user.service';
 
 @Component({
   selector: 'app-folders',
@@ -198,11 +200,14 @@ import { ConfirmService } from '../../core/services/confirm.service';
 export class FoldersComponent implements OnInit {
   private storage = inject(Storage);
   private db = getFirestore();
+  auth = inject(Auth);
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
+  userService = inject(UserService);
 
   showModal = false;
   newFolderName = '';
+  newFolderIsPublic = false;
 
   folders$: Observable<any[]> | undefined;
   selectedFolder = signal<any>(null);
@@ -210,13 +215,25 @@ export class FoldersComponent implements OnInit {
   viewingFile = signal<any>(null);
 
   ngOnInit() {
-    const foldersCol = collection(this.db, 'folders');
-    this.folders$ = collectionData(query(foldersCol), { idField: 'id' });
+    const uid = this.auth.currentUser!.uid;
+    const col = collection(this.db, 'folders');
+    const own$    = collectionData(query(col, where('uid', '==', uid)), { idField: 'id' });
+    const public$ = collectionData(query(col, where('isPublic', '==', true)), { idField: 'id' });
+    this.folders$ = combineLatest([own$, public$]).pipe(
+      map(([own, pub]) => {
+        const merged = [...own];
+        for (const p of pub) {
+          if (!merged.find((f: any) => f.id === p.id)) merged.push(p);
+        }
+        return merged;
+      })
+    );
   }
 
   openModal() {
     this.showModal = true;
     this.newFolderName = '';
+    this.newFolderIsPublic = false;
   }
 
   closeModal() {
@@ -227,7 +244,12 @@ export class FoldersComponent implements OnInit {
     if (!this.newFolderName) return;
     try {
       const foldersCol = collection(this.db, 'folders');
-      await addDoc(foldersCol, { name: this.newFolderName, count: 0 });
+      await addDoc(foldersCol, {
+        uid: this.auth.currentUser!.uid,
+        name: this.newFolderName,
+        count: 0,
+        isPublic: this.userService.isAdmin() ? this.newFolderIsPublic : false
+      });
       this.closeModal();
     } catch (e) {
       this.toast.error('Error creating folder. Check Firebase Rules are updated.');

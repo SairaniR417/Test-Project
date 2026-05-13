@@ -1,8 +1,9 @@
 import { Component, signal, inject, DestroyRef, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { getFirestore, collection, query, orderBy } from 'firebase/firestore';
+import { getFirestore, collection, query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
+import { Auth } from '@angular/fire/auth';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { ThemeService } from '../../core/services/theme.service';
 
@@ -61,6 +62,7 @@ interface TradeStats {
 })
 export class AnalyticsComponent implements OnInit {
   private db = getFirestore();
+  private auth = inject(Auth);
   private destroyRef = inject(DestroyRef);
   themeService = inject(ThemeService);
 
@@ -162,7 +164,8 @@ export class AnalyticsComponent implements OnInit {
   }
 
   ngOnInit() {
-    const q = query(collection(this.db, 'journal'), orderBy('date', 'desc'));
+    const uid = this.auth.currentUser!.uid;
+    const q = query(collection(this.db, 'journal'), where('uid', '==', uid), orderBy('date', 'desc'));
     collectionData(q, { idField: 'id' })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(entries => this.computeAll(entries));
