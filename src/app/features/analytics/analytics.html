@@ -1,0 +1,85 @@
+<h1 style="font-size: 1.5rem; margin-bottom: 2rem;">Trading Performance Analytics</h1>
+
+@if (hasData()) {
+  <div class="stat-row">
+    <div class="card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Total P&L</div>
+      <div
+        style="font-size: 1.5rem; font-weight: 700;"
+        [style.color]="stats().totalPnl >= 0 ? 'var(--success-color)' : 'var(--danger-color)'"
+      >
+        {{ stats().totalPnl >= 0 ? '+' : '' }}{{ stats().totalPnl | number:'1.2-2' }}
+      </div>
+      <div class="stat-sublabel">{{ stats().totalTrades }} trades total</div>
+    </div>
+
+    <div class="card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Win Rate</div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--success-color);">
+        {{ stats().winRate | number:'1.1-1' }}%
+      </div>
+      <div class="stat-sublabel">{{ stats().wins }}W &nbsp;/&nbsp; {{ stats().losses }}L</div>
+    </div>
+
+    <div class="card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Profit Factor</div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--accent-color);">
+        {{ formatProfitFactor(stats().profitFactor) }}
+      </div>
+      <div class="stat-sublabel">Gross profit / gross loss</div>
+    </div>
+
+    <div class="card" style="padding: 1.5rem;">
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Max Drawdown</div>
+      <div style="font-size: 1.5rem; font-weight: 700; color: var(--danger-color);">
+        -{{ stats().maxDrawdown | number:'1.1-1' }}%
+      </div>
+      <div class="stat-sublabel">Peak-to-trough equity drop</div>
+    </div>
+  </div>
+
+  <div class="analytics-grid">
+    <div class="chart-container">
+      <div style="font-weight: 600; margin-bottom: 1rem;">Equity Curve</div>
+      @if (equityChartOptions) {
+        <apx-chart
+          [series]="equityChartOptions.series"
+          [chart]="equityChartOptions.chart"
+          [colors]="equityChartOptions.colors"
+          [xaxis]="equityChartOptions.xaxis"
+          [yaxis]="equityChartOptions.yaxis"
+          [stroke]="equityChartOptions.stroke"
+          [fill]="equityChartOptions.fill"
+          [theme]="themeService.chartTheme()"
+          [grid]="equityChartOptions.grid"
+          [tooltip]="equityChartOptions.tooltip"
+        ></apx-chart>
+      }
+    </div>
+
+    <div class="chart-container">
+      <div style="font-weight: 600; margin-bottom: 1rem;">Win / Loss Breakdown</div>
+      @if (winLossChartOptions) {
+        <apx-chart
+          [series]="winLossChartOptions.series"
+          [chart]="winLossChartOptions.chart"
+          [labels]="winLossChartOptions.labels"
+          [colors]="winLossChartOptions.colors"
+          [theme]="themeService.chartTheme()"
+          [legend]="winLossChartOptions.legend"
+          [dataLabels]="winLossChartOptions.dataLabels"
+          [plotOptions]="winLossChartOptions.plotOptions"
+          [tooltip]="winLossChartOptions.tooltip"
+        ></apx-chart>
+      }
+    </div>
+  </div>
+} @else {
+  <div class="empty-state">
+    <i class="material-icons-round" style="font-size: 5rem; opacity: 0.12; margin-bottom: 1.5rem;">analytics</i>
+    <p style="font-size: 1.1rem; font-weight: 600; margin: 0;">No trade data yet</p>
+    <p style="font-size: 0.9rem; margin-top: 0.5rem; opacity: 0.55;">
+      Add trades in your Journal to see performance analytics here.
+    </p>
+  </div>
+}

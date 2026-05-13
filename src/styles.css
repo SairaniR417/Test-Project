@@ -1,0 +1,130 @@
+:root {
+  --bg-color: #0c0d10;
+  --surface-color: #131722;
+  --surface-hover: #1e222d;
+  --accent-color: #14b8a6;
+  --text-primary: #d1d4dc;
+  --text-secondary: #787b86;
+  --success-color: #22c55e;
+  --danger-color: #f23645;
+  --border-color: #2a2e39;
+  --sidebar-width: 240px;
+}
+
+[data-theme="light"] {
+  --bg-color: #f0f4f8;
+  --surface-color: #ffffff;
+  --surface-hover: #f5f7fa;
+  --text-primary: #131722;
+  --text-secondary: #64748b;
+  --border-color: #dde1ea;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border-color);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
+
+/* Global Transitions */
+a, button {
+  transition: all 0.2s ease-in-out;
+}
+
+/* Utility Classes */
+.glass {
+  background: rgba(19, 23, 34, 0.7);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+}
+
+[data-theme="light"] .glass {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+.card {
+  background: var(--surface-color);
+  border-radius: 8px;
+  padding: 1.5rem;
+  border: 1px solid var(--border-color);
+}
+
+.flex { display: flex; }
+.flex-col { flex-direction: column; }
+.items-center { align-items: center; }
+.justify-between { justify-content: space-between; }
+.gap-2 { gap: 0.5rem; }
+.gap-4 { gap: 1rem; }
+
+.text-gold { color: var(--accent-color); }
+.text-green { color: var(--success-color); }
+.text-red { color: var(--danger-color); }
+.text-dim { color: var(--text-secondary); }
+
+/* Confirm Dialog */
+.confirm-dialog-panel .mat-mdc-dialog-container {
+  background: transparent;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.6);
+  border-radius: 16px;
+}
+
+.confirm-dialog-panel .mdc-dialog__surface {
+  background: transparent !important;
+  border-radius: 16px !important;
+  box-shadow: none !important;
+}
+
+.confirm-dialog-backdrop {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(6px);
+}
+
+/* Toast / Snackbar */
+.mat-mdc-snack-bar-container.toast-success .mdc-snackbar__surface {
+  background: #0d2b24;
+  border: 1px solid var(--success-color);
+  border-radius: 10px;
+}
+
+.mat-mdc-snack-bar-container.toast-error .mdc-snackbar__surface {
+  background: #2b0d10;
+  border: 1px solid var(--danger-color);
+  border-radius: 10px;
+}
+
+.mat-mdc-snack-bar-container .mdc-snackbar__label {
+  color: var(--text-primary);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.875rem;
+}
+
+.mat-mdc-snack-bar-container .mat-mdc-button.mat-mdc-snack-bar-action {
+  color: var(--text-secondary);
+  min-width: unset;
+}

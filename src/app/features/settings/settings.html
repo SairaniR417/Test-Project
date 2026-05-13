@@ -1,0 +1,43 @@
+<h1 style="font-size: 1.5rem; margin-bottom: 2rem;">User Settings</h1>
+
+<div class="settings-section">
+  <h3 style="margin-top: 0;">Account Preferences</h3>
+  <div class="setting-item">
+    <div>
+      <div style="font-weight: 600;">Email Notifications</div>
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Receive weekly journal summaries</div>
+    </div>
+    <div class="toggle" [class.active]="notifications" (click)="notifications = !notifications"></div>
+  </div>
+  
+  <div class="setting-item">
+    <div>
+      <div style="font-weight: 600;">Dark Mode</div>
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Toggle between dark and light interface</div>
+    </div>
+    <div class="toggle" [class.active]="themeService.isDark()" (click)="themeService.toggle()"></div>
+  </div>
+</div>
+
+<div class="settings-section">
+  <h3 style="margin-top: 0; color: var(--danger-color);">Security</h3>
+  <div class="setting-item">
+    <div>
+      <div style="font-weight: 600;">Two-Factor Authentication</div>
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Add an extra layer of security</div>
+    </div>
+    <button class="btn-outline" style="font-size: 0.8rem;">Enable</button>
+  </div>
+  
+  <div class="setting-item">
+    <div>
+      <div style="font-weight: 600;">API Keys</div>
+      <div style="font-size: 0.8rem; color: var(--text-secondary);">Manage your TradingView webhooks</div>
+    </div>
+    <button class="btn-outline" style="font-size: 0.8rem;">Manage</button>
+  </div>
+</div>
+
+<button (click)="logout()" style="background: var(--danger-color); color: #fff; border: none; padding: 0.75rem 1.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 1rem;">
+  Sign Out
+</button>

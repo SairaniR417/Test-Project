@@ -1,0 +1,28 @@
+<div class="auth-card">
+  <div class="auth-header">
+    <div class="auth-logo">V</div>
+    <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: #fff;">{{ isLogin() ? 'Welcome Back' : 'Join the Vault' }}</h2>
+    <p style="color: var(--text-secondary); font-size: 0.875rem;">Your secure trading hub</p>
+  </div>
+
+  <form (ngSubmit)="handleAuth()">
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" name="email" [(ngModel)]="email" placeholder="name@example.com" required>
+    </div>
+    
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" name="password" [(ngModel)]="password" placeholder="••••••••" required>
+    </div>
+
+    <button type="submit" class="primary-btn">
+      {{ isLogin() ? 'Sign In' : 'Create Account' }}
+    </button>
+  </form>
+
+  <div class="switch-mode">
+    {{ isLogin() ? 'Don\'t have an account?' : 'Already have an account?' }}
+    <span (click)="toggleMode()">{{ isLogin() ? 'Sign Up' : 'Sign In' }}</span>
+  </div>
+</div>

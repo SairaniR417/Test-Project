@@ -1,0 +1,48 @@
+<h1 style="font-size: 1.5rem; margin-bottom: 2rem;">Welcome back, Trader</h1>
+
+<div class="dashboard-grid">
+  @for (stat of statCards(); track stat.label) {
+    <div class="stat-card">
+      <div class="stat-header">
+        <div class="stat-icon" [style.background-color]="stat.color">
+          <i class="material-icons-round" [style.color]="stat.iconColor">{{ stat.icon }}</i>
+        </div>
+      </div>
+      <div>
+        <div class="stat-value" [style.color]="stat.iconColor">{{ stat.value }}</div>
+        <div class="stat-label">{{ stat.label }}</div>
+      </div>
+    </div>
+  }
+</div>
+
+<div class="recent-section">
+  <div class="section-title">
+    <span>Recent Trades</span>
+    <a routerLink="/journal" style="color: var(--accent-color); font-size: 0.875rem; text-decoration: none;">View All</a>
+  </div>
+
+  @if (recentTrades().length > 0) {
+    @for (trade of recentTrades(); track trade.id) {
+      <div class="trade-item">
+        <div class="trade-icon">
+          <i class="material-icons-round" [style.color]="trade.status === 'profit' ? 'var(--success-color)' : 'var(--danger-color)'">
+            {{ trade.status === 'profit' ? 'trending_up' : 'trending_down' }}
+          </i>
+        </div>
+        <div style="flex: 1; min-width: 0;">
+          <div style="font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ trade.title }}</div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary);">{{ trade.displayDate }}</div>
+        </div>
+        <span class="pnl-badge" [class]="trade.status === 'profit' ? 'profit' : 'loss'">
+          {{ trade.pnl }}
+        </span>
+      </div>
+    }
+  } @else {
+    <div class="empty-trades">
+      <i class="material-icons-round" style="font-size: 2.5rem; opacity: 0.15; display: block; margin-bottom: 0.5rem;">history_edu</i>
+      No trades yet — add your first entry in the Journal.
+    </div>
+  }
+</div>

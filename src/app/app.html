@@ -1,0 +1,11 @@
+<div class="app-container">
+  <app-sidebar *ngIf="!isAuthPage()"></app-sidebar>
+  
+  <div class="main-content" [class.full-width]="isAuthPage()">
+    <app-header *ngIf="!isAuthPage()"></app-header>
+    
+    <main class="content-area">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>

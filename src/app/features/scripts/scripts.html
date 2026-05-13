@@ -1,0 +1,129 @@
+<!-- Toolbar -->
+<div class="toolbar">
+  <h1 style="margin: 0; font-size: 1.5rem;">Pine Scripts Library</h1>
+  <div class="btn-group">
+    <input type="file" #uploadInput accept=".pine,.txt" style="display:none" (change)="uploadScript($event)">
+    <button class="btn-outline" (click)="uploadInput.click()">
+      <i class="material-icons-round" style="font-size: 1rem;">upload_file</i>
+      Upload .pine
+    </button>
+    <button class="btn-outline btn-accent" (click)="openNewModal()">
+      <i class="material-icons-round" style="font-size: 1rem;">add</i>
+      New Script
+    </button>
+  </div>
+</div>
+
+<div class="scripts-layout">
+
+  <!-- Sidebar -->
+  <div class="scripts-sidebar">
+    @if (scripts$ | async; as scripts) {
+      @for (script of scripts; track script.id) {
+        <div class="script-item"
+             [class.active]="selectedScript()?.id === script.id"
+             (click)="selectScript(script)">
+          <i class="material-icons-round del-btn" (click)="$event.stopPropagation(); deleteScript(script)">delete</i>
+          <div style="font-weight: 600; color: var(--accent-color); font-size: 0.9rem; padding-right: 1.25rem; margin-bottom: 0.25rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+            {{script.name}}
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-secondary);">{{script.type}} · {{script.updated}}</div>
+        </div>
+      }
+      @if (scripts.length === 0) {
+        <div style="padding: 2rem; text-align: center; color: var(--text-secondary);">
+          <i class="material-icons-round" style="font-size: 2.5rem; opacity: 0.1; display: block; margin-bottom: 0.75rem;">code</i>
+          No scripts yet.
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Editor Panel -->
+  <div class="editor-panel">
+
+    @if (selectedScript()) {
+      <!-- Topbar -->
+      <div class="editor-topbar">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <i class="material-icons-round" style="color: var(--accent-color); font-size: 1.1rem;">code</i>
+          <span style="font-weight: 600; font-size: 0.95rem;">{{selectedScript()?.name}}</span>
+          <span style="font-size: 0.7rem; color: var(--text-secondary); background: var(--bg-color); border: 1px solid var(--border-color); padding: 0.15rem 0.5rem; border-radius: 4px;">Pine Script v5</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" (click)="copyCode()">
+            <i class="material-icons-round" style="font-size: 0.9rem;">content_copy</i>
+            Copy
+          </button>
+          <button class="btn-outline btn-accent" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" (click)="saveCurrentScript()" [disabled]="isSaving">
+            <i class="material-icons-round" style="font-size: 0.9rem;">save</i>
+            {{ isSaving ? 'Saving…' : 'Save' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Code Editor -->
+      <textarea
+        class="code-textarea"
+        [(ngModel)]="currentCode"
+        spellcheck="false"
+        autocomplete="off"
+        autocorrect="off"
+        autocapitalize="off"
+        (keydown.tab)="onTabKey($event)"
+        placeholder="Start typing your Pine Script here..."></textarea>
+
+    } @else {
+      <div style="flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color: var(--text-secondary); gap: 1rem;">
+        <i class="material-icons-round" style="font-size: 3rem; opacity: 0.15;">code</i>
+        <p style="margin:0; font-size: 0.875rem;">Select a script or create a new one</p>
+      </div>
+    }
+
+  </div>
+</div>
+
+<!-- Modal -->
+@if (showModal) {
+<div class="modal-overlay" (click)="closeModal()">
+  <div class="modal-content" [style.width]="isUpload ? '450px' : '700px'" (click)="$event.stopPropagation()">
+    <h2 style="margin-top: 0; margin-bottom: 1.5rem;">
+      {{ isUpload ? 'Save Uploaded Script' : 'New Pine Script' }}
+    </h2>
+
+    <div [style.display]="'grid'" [style.gap]="'1rem'" [style.grid-template-columns]="isUpload ? '1fr' : '1fr 1fr'">
+      <div class="form-group" style="margin-bottom: 0;">
+        <label>Script Name</label>
+        <input class="form-input" [(ngModel)]="scriptForm.name" placeholder="e.g. ICT Silver Bullet" autofocus>
+      </div>
+      <div class="form-group" style="margin-bottom: 0;">
+        <label>Type</label>
+        <select class="form-input" [(ngModel)]="scriptForm.type">
+          <option value="Indicator">Indicator</option>
+          <option value="Strategy">Strategy</option>
+          <option value="Alert">Alert</option>
+          <option value="Library">Library</option>
+        </select>
+      </div>
+    </div>
+
+    @if (!isUpload) {
+      <div class="form-group" style="margin-top: 1.25rem; margin-bottom: 0;">
+        <label>Pine Script Code</label>
+        <textarea class="form-input modal-code" [(ngModel)]="pendingCode" spellcheck="false" (keydown.tab)="onTabKey($event)"></textarea>
+      </div>
+    }
+
+    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+      <button style="flex:1; background: var(--accent-color); color: #000; border: none; padding: 0.75rem; border-radius: 8px; font-weight: 700; cursor: pointer;"
+              [disabled]="isSavingNew"
+              [style.opacity]="isSavingNew ? '0.6' : '1'"
+              [style.cursor]="isSavingNew ? 'not-allowed' : 'pointer'"
+              (click)="saveNewScript()">
+        {{ isSavingNew ? 'Saving…' : 'Save to Library' }}
+      </button>
+      <button class="btn-outline" style="flex: 1; padding: 0.75rem;" (click)="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+}

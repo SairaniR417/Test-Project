@@ -1,0 +1,46 @@
+{
+  "name": "delta-to-dharma",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test"
+  },
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "dependencies": {
+    "@angular/animations": "^21.2.12",
+    "@angular/cdk": "^21.2.10",
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/fire": "^21.0.0-rc.0",
+    "@angular/forms": "^21.2.0",
+    "@angular/material": "^21.2.10",
+    "@angular/platform-browser": "^21.2.0",
+    "@angular/router": "^21.2.0",
+    "ag-grid-angular": "^35.3.0",
+    "ag-grid-community": "^35.3.0",
+    "apexcharts": "^5.11.0",
+    "firebase": "^12.13.0",
+    "monaco-editor": "^0.55.1",
+    "ng-apexcharts": "^2.4.0",
+    "ngx-quill": "^30.1.3",
+    "quill": "^2.0.3",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "wavesurfer.js": "^7.12.6",
+    "zone.js": "^0.16.2"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.10",
+    "@angular/cli": "^21.2.10",
+    "@angular/compiler-cli": "^21.2.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  }
+}

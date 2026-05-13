@@ -1,0 +1,41 @@
+<div class="search-wrapper">
+  <div class="search-bar">
+    <i class="material-icons-round" style="font-size: 1.1rem; color: var(--text-secondary);">search</i>
+    <input
+      type="text"
+      placeholder="Search journal entries..."
+      [value]="searchQuery()"
+      (input)="onSearch($any($event.target).value)"
+    >
+    @if (searchQuery()) {
+      <button class="clear-btn" (click)="clearSearch()">
+        <i class="material-icons-round" style="font-size: 1rem;">close</i>
+      </button>
+    }
+  </div>
+
+  @if (showDropdown()) {
+    <div class="dropdown">
+      @if (filteredEntries().length > 0) {
+        @for (entry of filteredEntries(); track entry.id) {
+          <div class="dropdown-item" (click)="selectEntry(entry)">
+            <span class="dropdown-item-title">{{ entry.title }}</span>
+            <span class="pnl-chip" [class]="entry.status === 'profit' ? 'profit' : 'loss'">
+              {{ entry.pnl }}
+            </span>
+            <span class="dropdown-item-date">{{ entry.displayDate }}</span>
+          </div>
+        }
+      } @else {
+        <div class="no-results">No entries matching "{{ searchQuery() }}"</div>
+      }
+    </div>
+  }
+</div>
+
+<div class="actions">
+  <button class="upload-btn" (click)="goToUpload()">
+    <i class="material-icons-round" style="font-size: 1rem;">upload</i>
+    Upload
+  </button>
+</div>

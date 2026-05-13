@@ -1,0 +1,23 @@
+<div class="logo-container">
+  <div class="logo-icon">{{ logoLetter() }}</div>
+  <span class="logo-text">{{ displayName() }}</span>
+</div>
+
+<nav class="nav-links">
+  <a *ngFor="let item of menuItems" 
+     [routerLink]="item.route" 
+     routerLinkActive="active" 
+     class="nav-item">
+    <i class="material-icons-round">{{item.icon}}</i>
+    <span>{{item.label}}</span>
+  </a>
+</nav>
+
+<div class="footer">
+  <button (click)="signOut()" style="width:100%; display:flex; align-items:center; gap:0.75rem; padding:0.75rem 1rem; background:transparent; border:1px solid var(--border-color); border-radius:8px; color:var(--text-secondary); cursor:pointer; font-size:0.875rem; font-weight:600; transition: all 0.2s;"
+    onmouseover="this.style.borderColor='var(--danger-color)';this.style.color='var(--danger-color)'"
+    onmouseout="this.style.borderColor='var(--border-color)';this.style.color='var(--text-secondary)'">
+    <i class="material-icons-round" style="font-size:1.1rem;">logout</i>
+    Sign Out
+  </button>
+</div>
