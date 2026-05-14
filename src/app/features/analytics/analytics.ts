@@ -58,6 +58,11 @@ interface TradeStats {
       color: var(--text-secondary);
       text-align: center;
     }
+
+    @media (max-width: 768px) {
+      .stat-row { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      .analytics-grid { grid-template-columns: 1fr; }
+    }
   `]
 })
 export class AnalyticsComponent implements OnInit {

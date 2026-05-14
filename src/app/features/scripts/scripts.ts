@@ -1,10 +1,12 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, query, where, CollectionReference, DocumentData } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, map, take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { UserService } from '../../core/services/user.service';
@@ -203,6 +205,27 @@ import { UserService } from '../../core/services/user.service';
       overflow-wrap: normal;
       overflow-x: auto;
     }
+
+    @media (max-width: 768px) {
+      :host { height: auto; min-height: calc(100vh - 130px); }
+
+      .scripts-layout { flex-direction: column; overflow: visible; }
+
+      .scripts-sidebar {
+        width: 100%;
+        max-height: 220px;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        overflow-y: hidden;
+        gap: 0.5rem;
+        padding-bottom: 0.25rem;
+      }
+
+      .script-item { min-width: 160px; flex-shrink: 0; }
+
+      .editor-panel { min-height: 420px; }
+    }
   `]
 })
 export class ScriptsComponent implements OnInit {
@@ -211,6 +234,8 @@ export class ScriptsComponent implements OnInit {
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
   userService = inject(UserService);
+  private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
   showModal = false;
   isUpload = false;
@@ -222,6 +247,7 @@ export class ScriptsComponent implements OnInit {
   scripts$: Observable<any[]> | undefined;
   selectedScript = signal<any>(null);
   currentCode = '';
+  scriptSearch = '';
 
   readonly PINE_TEMPLATE = `//@version=5
 indicator("My Script", overlay=true)
@@ -251,6 +277,14 @@ plot(ma, title="MA", color=color.new(color.yellow, 0), linewidth=2)
         return merged;
       })
     );
+
+    const targetId = this.route.snapshot.queryParamMap.get('id');
+    if (targetId) {
+      this.scripts$!.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe(scripts => {
+        const target = scripts.find((s: any) => s.id === targetId);
+        if (target) this.selectScript(target);
+      });
+    }
   }
 
   openNewModal() {
@@ -286,6 +320,11 @@ plot(ma, title="MA", color=color.new(color.yellow, 0), linewidth=2)
     } finally {
       this.isSavingNew = false;
     }
+  }
+
+  filterScripts(scripts: any[]): any[] {
+    const q = this.scriptSearch.trim().toLowerCase();
+    return q ? scripts.filter(s => s.name?.toLowerCase().includes(q)) : scripts;
   }
 
   selectScript(script: any) {

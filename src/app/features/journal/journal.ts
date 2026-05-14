@@ -173,6 +173,21 @@ interface JournalStats {
       border-color: var(--accent-color);
       outline: none;
     }
+
+    @media (max-width: 768px) {
+      .journal-container { flex-direction: column; height: auto; }
+
+      .entries-sidebar {
+        width: 100%;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .entry-detail {
+        min-height: 480px;
+        overflow-y: visible;
+      }
+    }
   `]
 })
 export class JournalComponent implements OnInit {

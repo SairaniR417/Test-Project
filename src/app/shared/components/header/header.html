@@ -24,9 +24,7 @@
         @for (entry of filteredEntries(); track entry.id) {
           <div class="dropdown-item" (click)="selectEntry(entry)">
             <span class="dropdown-item-title">{{ entry.title }}</span>
-            <span class="pnl-chip" [class]="entry.status === 'profit' ? 'profit' : 'loss'">
-              {{ entry.pnl }}
-            </span>
+            <span class="pnl-chip" [class]="entry.status === 'profit' ? 'profit' : 'loss'">{{ entry.pnl }}</span>
             <span class="dropdown-item-date">{{ entry.displayDate }}</span>
           </div>
         }

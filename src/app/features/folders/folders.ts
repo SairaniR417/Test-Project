@@ -1,11 +1,13 @@
-import { Component, signal, inject, OnInit } from '@angular/core';
+import { Component, signal, inject, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Storage, ref, uploadBytes, getDownloadURL, deleteObject } from '@angular/fire/storage';
 import { getFirestore, collection, addDoc, deleteDoc, doc, updateDoc, increment, query, orderBy, where } from 'firebase/firestore';
 import { collectionData } from '@angular/fire/firestore';
 import { Auth } from '@angular/fire/auth';
-import { Observable, combineLatest, map } from 'rxjs';
+import { Observable, combineLatest, map, take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmService } from '../../core/services/confirm.service';
 import { UserService } from '../../core/services/user.service';
@@ -204,10 +206,18 @@ export class FoldersComponent implements OnInit {
   private toast = inject(ToastService);
   private confirm = inject(ConfirmService);
   userService = inject(UserService);
+  private route = inject(ActivatedRoute);
+  private destroyRef = inject(DestroyRef);
 
   showModal = false;
   newFolderName = '';
   newFolderIsPublic = false;
+  folderSearch = '';
+
+  filterFolders(folders: any[]): any[] {
+    const q = this.folderSearch.trim().toLowerCase();
+    return q ? folders.filter(f => f.name?.toLowerCase().includes(q)) : folders;
+  }
 
   folders$: Observable<any[]> | undefined;
   selectedFolder = signal<any>(null);
@@ -228,6 +238,14 @@ export class FoldersComponent implements OnInit {
         return merged;
       })
     );
+
+    const targetId = this.route.snapshot.queryParamMap.get('id');
+    if (targetId) {
+      this.folders$!.pipe(take(1), takeUntilDestroyed(this.destroyRef)).subscribe(folders => {
+        const target = folders.find((f: any) => f.id === targetId);
+        if (target) this.selectFolder(target);
+      });
+    }
   }
 
   openModal() {

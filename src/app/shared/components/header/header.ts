@@ -3,10 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { getFirestore, collection, query, orderBy, where } from 'firebase/firestore';
-import { collectionData } from '@angular/fire/firestore';
+import { getFirestore, collection, query, where, getDocs } from 'firebase/firestore';
 import { Auth, authState } from '@angular/fire/auth';
-import { switchMap, filter } from 'rxjs';
+import { filter, take } from 'rxjs';
 import { SidebarService } from '../../../core/services/sidebar.service';
 
 @Component({
@@ -27,10 +26,7 @@ import { SidebarService } from '../../../core/services/sidebar.service';
       z-index: 200;
     }
 
-    .search-wrapper {
-      position: relative;
-      width: 300px;
-    }
+    .search-wrapper { position: relative; width: 300px; }
 
     .search-bar {
       display: flex;
@@ -43,9 +39,7 @@ import { SidebarService } from '../../../core/services/sidebar.service';
       transition: border-color 0.2s;
     }
 
-    .search-bar:focus-within {
-      border-color: var(--accent-color);
-    }
+    .search-bar:focus-within { border-color: var(--accent-color); }
 
     .search-bar input {
       background: none;
@@ -56,9 +50,7 @@ import { SidebarService } from '../../../core/services/sidebar.service';
       font-size: 0.875rem;
     }
 
-    .search-bar input::placeholder {
-      color: var(--text-secondary);
-    }
+    .search-bar input::placeholder { color: var(--text-secondary); }
 
     .clear-btn {
       background: none;
@@ -68,7 +60,6 @@ import { SidebarService } from '../../../core/services/sidebar.service';
       padding: 0;
       display: flex;
       align-items: center;
-      font-size: 1rem;
     }
 
     .clear-btn:hover { color: var(--text-primary); }
@@ -98,7 +89,6 @@ import { SidebarService } from '../../../core/services/sidebar.service';
     }
 
     .dropdown-item:last-child { border-bottom: none; }
-
     .dropdown-item:hover { background: var(--surface-hover); }
 
     .dropdown-item-title {
@@ -110,11 +100,7 @@ import { SidebarService } from '../../../core/services/sidebar.service';
       flex: 1;
     }
 
-    .dropdown-item-date {
-      font-size: 0.75rem;
-      color: var(--text-secondary);
-      white-space: nowrap;
-    }
+    .dropdown-item-date { font-size: 0.75rem; color: var(--text-secondary); white-space: nowrap; }
 
     .pnl-chip {
       font-size: 0.7rem;
@@ -127,18 +113,9 @@ import { SidebarService } from '../../../core/services/sidebar.service';
     .pnl-chip.profit { background: rgba(34,197,94,0.12); color: #22c55e; }
     .pnl-chip.loss   { background: rgba(242,54,69,0.12);  color: #f23645; }
 
-    .no-results {
-      padding: 1rem;
-      text-align: center;
-      font-size: 0.875rem;
-      color: var(--text-secondary);
-    }
+    .no-results { padding: 1rem; text-align: center; font-size: 0.875rem; color: var(--text-secondary); }
 
-    .actions {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-    }
+    .actions { display: flex; align-items: center; gap: 1rem; }
 
     .upload-btn {
       background: var(--accent-color);
@@ -186,31 +163,29 @@ export class HeaderComponent implements OnInit {
 
   searchQuery = signal('');
   showDropdown = signal(false);
-  private allEntries: any[] = [];
   filteredEntries = signal<any[]>([]);
+  private journalData: any[] = [];
 
   ngOnInit() {
     authState(this.auth).pipe(
       filter(user => !!user),
-      switchMap(user => {
-        const q = query(collection(this.db, 'journal'), where('uid', '==', user!.uid), orderBy('date', 'desc'));
-        return collectionData(q, { idField: 'id' });
-      }),
+      take(1),
       takeUntilDestroyed(this.destroyRef)
-    ).subscribe((entries: any[]) => {
-      this.allEntries = entries;
+    ).subscribe(async user => {
+      try {
+        const snap = await getDocs(query(collection(this.db, 'journal'), where('uid', '==', user!.uid)));
+        this.journalData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      } catch (e) {
+        console.error('Journal search load error:', e);
+      }
     });
   }
 
   onSearch(value: string) {
     this.searchQuery.set(value);
     const q = value.trim().toLowerCase();
-    if (!q) {
-      this.filteredEntries.set([]);
-      this.showDropdown.set(false);
-      return;
-    }
-    const results = this.allEntries
+    if (!q) { this.filteredEntries.set([]); this.showDropdown.set(false); return; }
+    const results = this.journalData
       .filter(e => e.title?.toLowerCase().includes(q))
       .slice(0, 6);
     this.filteredEntries.set(results);
@@ -218,9 +193,7 @@ export class HeaderComponent implements OnInit {
   }
 
   selectEntry(entry: any) {
-    this.showDropdown.set(false);
-    this.searchQuery.set('');
-    this.filteredEntries.set([]);
+    this.clearSearch();
     this.router.navigate(['/journal'], { queryParams: { id: entry.id } });
   }
 

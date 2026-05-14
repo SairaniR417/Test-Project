@@ -18,8 +18,12 @@
 
   <!-- Sidebar -->
   <div class="scripts-sidebar">
+    <div style="position:relative; flex-shrink:0;">
+      <i class="material-icons-round" style="position:absolute; left:0.6rem; top:50%; transform:translateY(-50%); font-size:1rem; color:var(--text-secondary); pointer-events:none;">search</i>
+      <input [(ngModel)]="scriptSearch" placeholder="Search scripts..." style="width:100%; background:var(--surface-color); border:1px solid var(--border-color); border-radius:6px; padding:0.45rem 0.75rem 0.45rem 2rem; color:var(--text-primary); font-size:0.8rem; box-sizing:border-box; outline:none;" (focus)="$any($event.target).style.borderColor='var(--accent-color)'" (blur)="$any($event.target).style.borderColor='var(--border-color)'">
+    </div>
     @if (scripts$ | async; as scripts) {
-      @for (script of scripts; track script.id) {
+      @for (script of filterScripts(scripts); track script.id) {
         <div class="script-item"
              [class.active]="selectedScript()?.id === script.id"
              (click)="selectScript(script)">
@@ -55,15 +59,22 @@
           <span style="font-weight: 600; font-size: 0.95rem;">{{selectedScript()?.name}}</span>
           <span style="font-size: 0.7rem; color: var(--text-secondary); background: var(--bg-color); border: 1px solid var(--border-color); padding: 0.15rem 0.5rem; border-radius: 4px;">Pine Script v5</span>
         </div>
-        <div style="display: flex; gap: 0.5rem;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+          @if (selectedScript()?.uid !== auth.currentUser?.uid) {
+            <span style="font-size:0.7rem; color:var(--text-secondary); background:var(--bg-color); border:1px solid var(--border-color); padding:0.15rem 0.6rem; border-radius:4px; display:flex; align-items:center; gap:0.3rem;">
+              <i class="material-icons-round" style="font-size:0.8rem;">lock</i> Read-only
+            </span>
+          }
           <button class="btn-outline" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" (click)="copyCode()">
             <i class="material-icons-round" style="font-size: 0.9rem;">content_copy</i>
             Copy
           </button>
-          <button class="btn-outline btn-accent" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" (click)="saveCurrentScript()" [disabled]="isSaving">
-            <i class="material-icons-round" style="font-size: 0.9rem;">save</i>
-            {{ isSaving ? 'Saving…' : 'Save' }}
-          </button>
+          @if (selectedScript()?.uid === auth.currentUser?.uid) {
+            <button class="btn-outline btn-accent" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;" (click)="saveCurrentScript()" [disabled]="isSaving">
+              <i class="material-icons-round" style="font-size: 0.9rem;">save</i>
+              {{ isSaving ? 'Saving…' : 'Save' }}
+            </button>
+          }
         </div>
       </div>
 
@@ -76,6 +87,7 @@
         autocorrect="off"
         autocapitalize="off"
         (keydown.tab)="onTabKey($event)"
+        [readonly]="selectedScript()?.uid !== auth.currentUser?.uid"
         placeholder="Start typing your Pine Script here..."></textarea>
 
     } @else {
